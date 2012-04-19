@@ -493,6 +493,7 @@ function buildOptions($cont, $slides, els, options, o) {
 		buildPager(els,opts);
 
 	exposeAddSlide(opts, els);
+    exposeRemoveSlide(opts, els);
 
 	return opts;
 }
@@ -600,6 +601,19 @@ function exposeAddSlide(opts, els) {
 	};
 }
 
+function exposeRemoveSlide(opts, els) {
+    opts.removeSlide = function(slide) {
+        // Added mechanism for deleting slides
+        els.splice(0,1); // Delete the slide from the array
+        opts.slideCount = els.length;
+
+        opts.$cont.find('>:eq(0)').remove(); // Delete the slide from the DOM
+
+        opts.currSlide--;
+        opts.nextSlide--;
+    };
+}
+
 // reset internal state; we do this on every pass in order to support multiple effects
 $.fn.cycle.resetState = function(opts, fx) {
 	fx = fx || opts.fx;
@@ -653,7 +667,7 @@ function go(els, opts, manual, fwd) {
 
 	// if slideshow is paused, only transition on a manual trigger
 	var changed = false;
-	if ((manual || !p.cyclePause) && (opts.nextSlide != opts.currSlide)) {
+	if (((manual && !opts.pauseManual) || !p.cyclePause) && (opts.nextSlide != opts.currSlide)) {
 		changed = true;
 		var fx = opts.fx;
 		// keep trying to get the slide size if we don't have it yet
@@ -1037,6 +1051,7 @@ $.fn.cycle.defaults = {
     fxFn:             null,     // function used to control the transition: function(currSlideElement, nextSlideElement, options, afterCalback, forwardFlag)
     height:           'auto',   // container height (if the 'fit' option is true, the slides will be set to this height as well)
     manualTrump:      true,     // causes manual transition to stop an active transition instead of being ignored
+    pauseManual:      false,    // should manual transitions be allowed while slideshow is paused?
     metaAttr:         'cycle',  // data- attribute that holds the option data for the slideshow
     next:             null,     // element, jQuery object, or jQuery selector string for the element to use as event trigger for next slide
     nowrap:           0,        // true to prevent slideshow from wrapping
